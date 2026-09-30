@@ -4,3 +4,6 @@ Servers/
 *.class
 target/
 .settings/
+/SpringBoot_JPA_And_H2_DB/*.classpath
+/SpringBoot_JPA_And_H2_DB/*.project
+/SpringBoot/*.classpath

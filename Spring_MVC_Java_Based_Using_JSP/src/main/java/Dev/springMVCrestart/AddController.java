@@ -36,10 +36,10 @@ public class AddController {
 	@GetMapping("add")
 	public ModelAndView addBest(@RequestParam("t1") int t1, @RequestParam("t2") int t2) {
 		System.out.println("Print line");
-		/**	ServiceClass service = new ServiceClass(); // instead of creating new service 
-		 * we use use @Autowire on ServiceClass to let Spring manage its lifecycle through 
+		/**	ServiceClass service = new ServiceClass(); 
+		 * Instead of creating new service object, 
+		 * we use @Autowire on ServiceClass to let Spring manage its lifecycle through 
 		 * dependency injection.*/
-//		ServiceClass service = new ServiceClass();
 		int k = service.add(t1, t2);
 
 		/** ModelAndView is of SpringFramework so we need dependencies */
