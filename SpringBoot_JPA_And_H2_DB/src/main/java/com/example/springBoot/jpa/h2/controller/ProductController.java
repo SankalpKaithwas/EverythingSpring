@@ -2,6 +2,9 @@ package com.example.springBoot.jpa.h2.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,11 +42,12 @@ public class ProductController {
 	}
 
 	// 2. GET BY ID: http://localhost:8080/api/products/1
-	@GetMapping("/{id}")
-	public ResponseEntity<Product> getById(@PathVariable Long id) {
-		return productService.getProductById(id).map(product -> ResponseEntity.ok(product))
-				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-	}
+//	@GetMapping("/{id}")
+//	public ResponseEntity<Product> getById(@PathVariable Long id) {
+//		return productService.getProductById(id).map(product -> ResponseEntity.ok(product))
+//				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+//	}
+	
 
 	// 3. POST (Create): http://localhost:8080/api/products
 	@PostMapping
@@ -53,20 +57,50 @@ public class ProductController {
 	}
 
 	// 4. PUT (Update): http://localhost:8080/api/products/1
-	@PutMapping("/{id}")
-	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-		return productService.updateProduct(id, product).map(updated -> ResponseEntity.ok(updated))
-				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-	}
+//	@PutMapping("/{id}")
+//	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+//		return productService.updateProduct(id, product).map(updated -> ResponseEntity.ok(updated))
+//				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+//	}
 
 	// 5. DELETE: http://localhost:8080/api/products/1
+//	@DeleteMapping("/{id}")
+//	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+//		boolean deleted = productService.deleteProduct(id);
+//		if (deleted) {
+//			return ResponseEntity.noContent().build(); // HTTP 204 No Content
+//		}
+//		return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // HTTP 404
+//	}
+
+	
+	// After Exception Handling ----->>>
+	
+	@GetMapping("/search/")
+	public ResponseEntity<Product> getByName(@PathVariable Long id) {
+		Product product = productService.getProductById(id);
+		return ResponseEntity.ok(product);
+	}
+	
+	// GET by ID : http://localhost:8080/api/products/1
+	@GetMapping("/{id}")
+	public ResponseEntity<Product> getById(@PathVariable Long id) {
+		Product product = productService.getProductById(id);
+		return ResponseEntity.ok(product);
+	}
+	
+	// PUT (Update): http://localhost:8080/api/products/1
+	@PutMapping("/{id}")
+	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+		Product updated = productService.updateProduct(id, product);
+		return ResponseEntity.ok(updated);
+	}
+
+	// DELETE : http://localhost:8080/api/products/1
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-		boolean deleted = productService.deleteProduct(id);
-		if (deleted) {
-			return ResponseEntity.noContent().build(); // HTTP 204 No Content
-		}
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // HTTP 404
+		productService.deleteProduct(id);
+		return ResponseEntity.noContent().build();
 	}
 	
 	/** Adding CUSTOM Query Endpoints - */
@@ -76,8 +110,8 @@ public class ProductController {
     public List<Product> searchProducts(@RequestParam String keyword) {
         return productService.searchByNameIgnoreCase(keyword);
     }
-    
- // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
+	
+    // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
     @GetMapping("/filter")
     public List<Product> filterByMaxPrice(@RequestParam double maxPrice) {
         return productService.filterByMaxPrice(maxPrice);
@@ -89,6 +123,17 @@ public class ProductController {
         return productService.filterByPriceRange(min, max);
     }
 	
-	
+	/** Spring MVC has built-in support for Pageable. When you include Pageable pageable as a method argument,
+	 *  Spring automatically parses ?page=, ?size=, and ?sort= from the request URL. 
+	 *  @PageableDefault: Sets the defaults if the client doesn't pass query parameters.
+		Zero-indexed: In Spring Data, pages start at index 0 (Page 0 = first page).*/
+    
+	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
+	@GetMapping("/paged")
+	public Page<Product> getProductsPaged(
+	    @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable
+	) {
+	    return productService.getProductsPaginated(pageable);
+	}
 	
 }

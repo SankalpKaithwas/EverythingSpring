@@ -2,6 +2,8 @@ package com.example.springBoot.jpa.h2.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -58,6 +60,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.price BETWEEN :min AND :max")
     List<Product> findProductsInPriceRange(@Param("min") double min, @Param("max") double max);
 	
-	
-
+	/** Using Pagination - // Paginated custom search*/
+//	Page<Product> findAll(String keyword, Pageable pageable); 
+//    JpaRepository already implements PagingAndSortingRepository so no need to explicitly specify for JpaRepository
+    // provided methods. HOWEVER User Defined methods needs to specify. Example - .
+    // Paginated custom search - 
+    Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable); // Not implemented
 }
