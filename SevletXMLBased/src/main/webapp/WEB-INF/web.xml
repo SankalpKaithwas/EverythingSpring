@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4"
+	xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>SevletXMLBased</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>index.xhtml</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+		<welcome-file>default.xhtml</welcome-file>
+	</welcome-file-list>
+
+	<servlet>
+		<servlet-name>CubeServlet</servlet-name>
+		<servlet-class>com.arithmatics.CubeServlet</servlet-class>
+		<init-param>
+			<param-name>name</param-name>
+			<param-value>Jacob</param-value>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CubeServlet</servlet-name>
+		<url-pattern>/cube</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>SquareServlet</servlet-name>
+		<servlet-class>com.arithmatics.SquareServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>SquareServlet</servlet-name>
+		<url-pattern>/square</url-pattern>
+	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>AddServlet</servlet-name>
+		<servlet-class>com.arithmatics.AddServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AddServlet</servlet-name>
+		<url-pattern>/addition</url-pattern>
+	</servlet-mapping>
+
+	<context-param>
+		<param-name>name</param-name>
+		<param-value>James</param-value>
+	</context-param>
+	<context-param>
+		<param-name>company</param-name>
+		<param-value>XYX</param-value>
+	</context-param>
+</web-app>

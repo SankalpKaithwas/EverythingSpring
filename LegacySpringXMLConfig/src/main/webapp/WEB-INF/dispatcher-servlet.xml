@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context 
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/mvc 
+           http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <!-- 1. Enable Spring MVC annotations (@Controller, @RequestMapping, etc.) -->
+    <mvc:annotation-driven />
+
+    <!-- 2. Auto-scan controllers, services, and repositories -->
+    <context:component-scan base-package="com.legacy.servlet.xml.config" />
+
+    <!-- 3. Serve static resources (CSS, JS, images) directly without hitting controllers -->
+    <mvc:default-servlet-handler />
+
+    <!-- 4. InternalResourceViewResolver: maps logical view names to actual JSP files -->
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+    
+<!-- This is The Legacy Spring XML File. This file is a traditional Spring 
+	application context file that instructs Spring to scan packages for annotations: 
+	<context:component-scan base-package="com.springMVCrestart">: Scans for @Controller, 
+	@Service, @Repository, and @Component.
+	<context:annotation-config>: Enables annotation processing inside registered beans (like @Autowired). -->	
+<!-- This is dispatcher servlet configuration file -->
+
+<!-- For Java Based Configuration follow below STEPS => -->
+<!-- Step 1. This file "dispatcher-servlet.xml" can be replaced by configuration class which implements WebMvcConfigurer Interface -->
+<!-- Step 2. Create a class named MyWebInitialiser extends AbstractAnnotationConfigDispatcherServletInitializer and override the implement of 
+	getServletConfigClasses(), getServletConfigClasses() and getServletMappings() methods.
+	(Refer - Spring_MVC_Java_Based_Using_JSP projects AppConfig class) -->
+</beans>

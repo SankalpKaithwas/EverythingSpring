@@ -4,3 +4,5 @@ Servers/
 *.class
 target/
 .settings/
+.project
+.classpath
