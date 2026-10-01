@@ -22,15 +22,23 @@ public class AppConfig implements WebMvcConfigurer {
 	@Bean
 	public InternalResourceViewResolver viewResolver() {
 		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+		//resolver.setPrefix("/WEB-INF/");  specifying the path of jsp files
 		resolver.setPrefix("/");
 		resolver.setSuffix(".jsp");
 		return resolver;
 	}
 }
 
-//dispatcher servlet (sankalp-servlet.xml) replacement  (in this we configure the dispatcher Servlet)
+/**
+//If not providing .jsp extension in mv.setViewName() then we need to do internalResourceViewResolver bit.
+//Don't need the "dispatcher-servlet.xml" file now. This class is replacement for dispatcher-servelet.xml file.
+//(Refer - LegacySpringXMLConfig Project)
+//Dispatcher servlet (dispatcher-servlet.xml) replacement.  (in this we configure the dispatcher-Servlet)
 //EnableWebMvc is to specify that we are going to use Annotations
 //@Configuration is to specify that this is a configuration file
+ */
+
+
 /**
  * @Configuration: Marks the class as a source of bean definitions for the
  *                 Spring IoC container.

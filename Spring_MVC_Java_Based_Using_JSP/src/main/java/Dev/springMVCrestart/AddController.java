@@ -1,15 +1,13 @@
 package Dev.springMVCrestart;
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 
 import Dev.springMVCrestart.service.ServiceClass;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 public class AddController {
@@ -32,22 +30,42 @@ public class AddController {
         this.service = service;
     }
 	
-	// Preferred Way
+	// Use Model as it is better than ModelAndView
 	@GetMapping("add")
-	public ModelAndView addBest(@RequestParam("t1") int t1, @RequestParam("t2") int t2) {
+	public String addition(@RequestParam("t1") int t1, @RequestParam("t2") int t2, Model model) {
 		System.out.println("Print line");
 		/**	ServiceClass service = new ServiceClass(); 
 		 * Instead of creating new service object, 
 		 * we use @Autowire on ServiceClass to let Spring manage its lifecycle through 
 		 * dependency injection.*/
 		int k = service.add(t1, t2);
-
-		/** ModelAndView is of SpringFramework so we need dependencies */
-		ModelAndView view = new ModelAndView();
-		view.addObject("result", k);
-		view.setViewName("display");
-		return view;
+		model.addAttribute("result",k);
+		model.addAttribute("status","Hello! AddController is working perfectly.");
+		model.addAttribute("timestamp", LocalDateTime.now().toString());
+		return "display"; // Resolves to templates/profile.html (or .jsp)
 	}
+	
+	/** Why Model won over ModelAndView:
+		1. With Model, the return type is a simple, readable String view name.
+		2. Redirects are clean: return "redirect:/login";.
+		3. ModelAndView forces you to instantiate a wrapper object manually (new ModelAndView("profile")), 
+		which adds boilerplate without adding value. */
+	
+    
+	// Preferred Way with service injection
+//	@GetMapping("add")
+//	public ModelAndView add2(@RequestParam("t1") int t1, @RequestParam("t2") int t2) {
+//		System.out.println("Print line");
+//		/**	ServiceClass service = new ServiceClass(); 
+//		 * Instead of creating new service object, 
+//		 * we use @Autowire on ServiceClass to let Spring manage its lifecycle through 
+//		 * dependency injection.*/
+//		int k = service.add(t1, t2);
+//		ModelAndView view = new ModelAndView();
+//		view.addObject("result", k);
+//		view.setViewName("display");
+//		return view;
+//	}
 	
 	
 //	@RequestMapping("add")

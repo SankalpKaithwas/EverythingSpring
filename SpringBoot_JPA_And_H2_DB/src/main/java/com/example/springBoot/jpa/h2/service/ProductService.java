@@ -58,4 +58,22 @@ public class ProductService {
 	 * 
 	 * If the entity has an existing id, Hibernate executes UPDATE.
 	 */
+	
+	// Using Custom querying using JPA keywords defined in ProductRepository
+	// along with user defined query :-
+	
+	// Search by keyword ignoring cases
+    public List<Product> searchByNameIgnoreCase(String keyword) {
+        return productRepository.findByNameContainingIgnoreCase(keyword);
+    }
+
+    // Filter by max price
+    public List<Product> filterByMaxPrice(double maxPrice) {
+        return productRepository.findByPriceLessThanEqual(maxPrice);
+    }
+
+    // Filter by price range
+    public List<Product> filterByPriceRange(double min, double max) {
+        return productRepository.findProductsInPriceRange(min, max);
+    }
 }

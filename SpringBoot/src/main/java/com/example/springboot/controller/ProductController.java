@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.springboot.model.Product;
 import com.example.springboot.service.ProductService;
 
-@RestController
+@RestController // Equivalent to @Controller + @ResponseBody on every method
 @RequestMapping("/api/products") // @RequestMapping("/api/products") is Class-level: sets the base URI
 public class ProductController {
 	

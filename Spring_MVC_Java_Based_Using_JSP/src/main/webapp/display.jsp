@@ -11,5 +11,8 @@
 
 	<!-- Result isrequest.getAttribute("result")t") %> -->
 	Result is = ${result}
+	<p>${message}</p>
+	<p>${status}</p>
+	<p>Server Time: ${timestamp}</p>
 </body>
 </html>

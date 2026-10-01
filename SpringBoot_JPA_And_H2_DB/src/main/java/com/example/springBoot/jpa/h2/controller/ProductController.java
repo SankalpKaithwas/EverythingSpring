@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.springBoot.jpa.h2.model.Product;
 import com.example.springBoot.jpa.h2.service.ProductService;
 
-@RestController
+@RestController // Equivalent to @Controller + @ResponseBody on every method
 @RequestMapping("/api/products")
 public class ProductController {
 
@@ -67,4 +68,27 @@ public class ProductController {
 		}
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // HTTP 404
 	}
+	
+	/** Adding CUSTOM Query Endpoints - */
+	
+	// Search endpoint: http://localhost:8080/api/products/search?keyword=mouse
+    @GetMapping("/search")
+    public List<Product> searchProducts(@RequestParam String keyword) {
+        return productService.searchByNameIgnoreCase(keyword);
+    }
+    
+ // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
+    @GetMapping("/filter")
+    public List<Product> filterByMaxPrice(@RequestParam double maxPrice) {
+        return productService.filterByMaxPrice(maxPrice);
+    }
+
+    // Price range filter: http://localhost:8080/api/products/range?min=20&max=100
+    @GetMapping("/range")
+    public List<Product> filterByRange(@RequestParam double min, @RequestParam double max) {
+        return productService.filterByPriceRange(min, max);
+    }
+	
+	
+	
 }
