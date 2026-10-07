@@ -1,0 +1,6 @@
+# createDatabaseIfNotExist=true: Instructs MySQL to create the product_db schema automatically if it does not already exist.
+
+# serverTimezone=UTC: Eliminates timezone handshake warnings between the Java VM and the database server.
+
+# spring.jpa.hibernate.ddl-auto=update: Hibernate will inspect your @Entity classes (like Product.java) 
+and create the products table automatically without dropping existing records on restart.

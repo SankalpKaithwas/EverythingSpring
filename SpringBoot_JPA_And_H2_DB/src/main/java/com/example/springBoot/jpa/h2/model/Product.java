@@ -24,6 +24,7 @@ public class Product {
 	 *     Spring Data JPA mapping an @Entity class to an in-memory H2 database.
 	 *  GenerationType.IDENTITY - IDENTITY forces Hibernate to execute the INSERT SQL statement
 	 *  immediately on save()/persist() so it can retrieve the generated ID.
+	 *  GenerationType.IDENTITY tells Hibernate to use MySQL's native AUTO_INCREMENT column mechanism.
 	 */
 
 	@Id
