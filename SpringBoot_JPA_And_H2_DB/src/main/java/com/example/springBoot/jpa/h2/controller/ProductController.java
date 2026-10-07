@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.springBoot.jpa.h2.model.ApiResponse;
 import com.example.springBoot.jpa.h2.model.Product;
 import com.example.springBoot.jpa.h2.service.ProductService;
+
+import jakarta.validation.Valid;
 
 @RestController // Equivalent to @Controller + @ResponseBody on every method
 @RequestMapping("/api/products")
@@ -37,8 +40,9 @@ public class ProductController {
 
 	// 1. GET ALL: http://localhost:8080/api/products
 	@GetMapping
-	public List<Product> getAll() {
-		return productService.getAllProducts();
+	public ResponseEntity<ApiResponse<List<Product>>> getAll() {
+		List<Product> allProducts = productService.getAllProducts();
+		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", allProducts));
 	}
 
 	// 2. GET BY ID: http://localhost:8080/api/products/1
@@ -48,12 +52,20 @@ public class ProductController {
 //				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
 //	}
 	
-
+	
+	/** Rule of Thumb: If the client passes Accept: application/json, Spring responds with JSON. 
+	 * If the client passes Accept: application/xml, Spring responds with XML. If no Accept header is specified, Spring defaults to JSON.
+	 * Strictly expects XML in request, strictly sends XML in response,
+		If you leave @PostMapping without consumes/produces, the endpoint becomes 
+		format-agnostic: it accepts both JSON and XML based on the client's headers.
+	 */
+		
 	// 3. POST (Create): http://localhost:8080/api/products
 	@PostMapping
-	public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+	public ResponseEntity<ApiResponse<Product>> createProduct(@Valid @RequestBody Product product) {
 		Product saved = productService.addProduct(product);
-		return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+		return ResponseEntity.status(HttpStatus.CREATED).
+				body(ApiResponse.success("Product Created Succesfully", saved));
 	}
 
 	// 4. PUT (Update): http://localhost:8080/api/products/1
@@ -77,21 +89,21 @@ public class ProductController {
 	// After Exception Handling ----->>>
 	
 	@GetMapping("/search/")
-	public ResponseEntity<Product> getByName(@PathVariable Long id) {
+	public ResponseEntity<ApiResponse<Product>> getByName(@PathVariable Long id) {
 		Product product = productService.getProductById(id);
-		return ResponseEntity.ok(product);
+		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
 	}
 	
 	// GET by ID : http://localhost:8080/api/products/1
 	@GetMapping("/{id}")
-	public ResponseEntity<Product> getById(@PathVariable Long id) {
+	public ResponseEntity<ApiResponse<Product>> getById(@PathVariable Long id) {
 		Product product = productService.getProductById(id);
-		return ResponseEntity.ok(product);
+		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
 	}
 	
 	// PUT (Update): http://localhost:8080/api/products/1
 	@PutMapping("/{id}")
-	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
 		Product updated = productService.updateProduct(id, product);
 		return ResponseEntity.ok(updated);
 	}
@@ -107,20 +119,23 @@ public class ProductController {
 	
 	// Search endpoint: http://localhost:8080/api/products/search?keyword=mouse
     @GetMapping("/search")
-    public List<Product> searchProducts(@RequestParam String keyword) {
-        return productService.searchByNameIgnoreCase(keyword);
+    public ResponseEntity<ApiResponse<List<Product>>> searchProducts(@RequestParam String keyword) {
+       List<Product> product =  productService.searchByNameIgnoreCase(keyword);
+       return ResponseEntity.ok(ApiResponse.success("Found Product(s)", product));
     }
 	
     // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
     @GetMapping("/filter")
-    public List<Product> filterByMaxPrice(@RequestParam double maxPrice) {
-        return productService.filterByMaxPrice(maxPrice);
+    public ResponseEntity<ApiResponse<List<Product>>> filterByMaxPrice(@RequestParam double maxPrice) {
+         List<Product> filterByMaxPrice = productService.filterByMaxPrice(maxPrice);
+         return ResponseEntity.ok(ApiResponse.success("List of products within 'Max Price' Range",filterByMaxPrice));
     }
 
     // Price range filter: http://localhost:8080/api/products/range?min=20&max=100
     @GetMapping("/range")
-    public List<Product> filterByRange(@RequestParam double min, @RequestParam double max) {
-        return productService.filterByPriceRange(min, max);
+    public ResponseEntity<ApiResponse<List<Product>>> filterByRange(@RequestParam double min, @RequestParam double max) {
+        return ResponseEntity.ok(ApiResponse.success("Fetched products within the limit " + min +" and " + max + " - ",
+        		productService.filterByPriceRange(min, max)));
     }
 	
 	/** Spring MVC has built-in support for Pageable. When you include Pageable pageable as a method argument,
@@ -130,10 +145,9 @@ public class ProductController {
     
 	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
 	@GetMapping("/paged")
-	public Page<Product> getProductsPaged(
-	    @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable
-	) {
-	    return productService.getProductsPaginated(pageable);
+	public ResponseEntity<ApiResponse<Page<Product>>> getProductsPaged(
+	    @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
+	    return ResponseEntity.ok(ApiResponse.success(productService.getProductsPaginated(pageable)))   ;
 	}
 	
 }
