@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,14 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.springBoot.jpa.h2.dto.ProductRequest;
+import com.example.springBoot.jpa.h2.dto.ProductResponse;
 import com.example.springBoot.jpa.h2.model.ApiResponse;
-import com.example.springBoot.jpa.h2.model.Product;
 import com.example.springBoot.jpa.h2.service.ProductService;
 
 import jakarta.validation.Valid;
 
 @RestController // Equivalent to @Controller + @ResponseBody on every method
-@RequestMapping("/api/products")
+@RequestMapping(path="/api/products", produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
 public class ProductController {
 
 	/**
@@ -40,8 +42,8 @@ public class ProductController {
 
 	// 1. GET ALL: http://localhost:8080/api/products
 	@GetMapping
-	public ResponseEntity<ApiResponse<List<Product>>> getAll() {
-		List<Product> allProducts = productService.getAllProducts();
+	public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
+		List<ProductResponse> allProducts = productService.getAllProducts();
 		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", allProducts));
 	}
 
@@ -61,9 +63,9 @@ public class ProductController {
 	 */
 		
 	// 3. POST (Create): http://localhost:8080/api/products
-	@PostMapping
-	public ResponseEntity<ApiResponse<Product>> createProduct(@Valid @RequestBody Product product) {
-		Product saved = productService.addProduct(product);
+	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest product) {
+		ProductResponse saved = productService.addProduct(product);
 		return ResponseEntity.status(HttpStatus.CREATED).
 				body(ApiResponse.success("Product Created Succesfully", saved));
 	}
@@ -89,51 +91,52 @@ public class ProductController {
 	// After Exception Handling ----->>>
 	
 	@GetMapping("/search/")
-	public ResponseEntity<ApiResponse<Product>> getByName(@PathVariable Long id) {
-		Product product = productService.getProductById(id);
+	public ResponseEntity<ApiResponse<ProductResponse>> getByName(@PathVariable Long id) {
+		ProductResponse product = productService.getProductById(id);
 		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
 	}
 	
 	// GET by ID : http://localhost:8080/api/products/1
 	@GetMapping("/{id}")
-	public ResponseEntity<ApiResponse<Product>> getById(@PathVariable Long id) {
-		Product product = productService.getProductById(id);
+	public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable Long id) {
+		ProductResponse product = productService.getProductById(id);
 		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
 	}
 	
 	// PUT (Update): http://localhost:8080/api/products/1
-	@PutMapping("/{id}")
-	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
-		Product updated = productService.updateProduct(id, product);
-		return ResponseEntity.ok(updated);
+	@PutMapping(path = "/{id}", 
+	        consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest productRequest) {
+		ProductResponse updated = productService.updateProduct(id, productRequest);
+		return ResponseEntity.ok(ApiResponse.success("Updated Successfully", updated));
 	}
 
 	// DELETE : http://localhost:8080/api/products/1
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+	public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
 		productService.deleteProduct(id);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok(ApiResponse.success("Product Deleted Successfully",null));
 	}
 	
 	/** Adding CUSTOM Query Endpoints - */
 	
 	// Search endpoint: http://localhost:8080/api/products/search?keyword=mouse
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<Product>>> searchProducts(@RequestParam String keyword) {
-       List<Product> product =  productService.searchByNameIgnoreCase(keyword);
-       return ResponseEntity.ok(ApiResponse.success("Found Product(s)", product));
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(@RequestParam String keyword) {
+       List<ProductResponse> product =  productService.searchByNameIgnoreCase(keyword);
+       return ResponseEntity.ok(ApiResponse.success(String.format("Found Product(s) matching '%s' - ", keyword), product));
     }
 	
     // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponse<List<Product>>> filterByMaxPrice(@RequestParam double maxPrice) {
-         List<Product> filterByMaxPrice = productService.filterByMaxPrice(maxPrice);
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> filterByMaxPrice(@RequestParam double maxPrice) {
+         List<ProductResponse> filterByMaxPrice = productService.filterByMaxPrice(maxPrice);
          return ResponseEntity.ok(ApiResponse.success("List of products within 'Max Price' Range",filterByMaxPrice));
     }
 
     // Price range filter: http://localhost:8080/api/products/range?min=20&max=100
     @GetMapping("/range")
-    public ResponseEntity<ApiResponse<List<Product>>> filterByRange(@RequestParam double min, @RequestParam double max) {
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> filterByRange(@RequestParam double min, @RequestParam double max) {
         return ResponseEntity.ok(ApiResponse.success("Fetched products within the limit " + min +" and " + max + " - ",
         		productService.filterByPriceRange(min, max)));
     }
@@ -145,7 +148,7 @@ public class ProductController {
     
 	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
 	@GetMapping("/paged")
-	public ResponseEntity<ApiResponse<Page<Product>>> getProductsPaged(
+	public ResponseEntity<ApiResponse<Page<ProductResponse>>> getProductsPaged(
 	    @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
 	    return ResponseEntity.ok(ApiResponse.success(productService.getProductsPaginated(pageable)))   ;
 	}

@@ -1,22 +1,21 @@
 package com.example.springBoot.jpa.h2.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.springBoot.jpa.h2.dto.ProductRequest;
+import com.example.springBoot.jpa.h2.dto.ProductResponse;
 import com.example.springBoot.jpa.h2.exceptions.ResourceConflictException;
 import com.example.springBoot.jpa.h2.exceptions.ResourceNotFoundException;
 import com.example.springBoot.jpa.h2.model.Product;
 import com.example.springBoot.jpa.h2.repository.ProductRepository;
 
 @Service
+@Transactional
 public class ProductService {
 
 	private final ProductRepository productRepository;
@@ -32,9 +31,25 @@ public class ProductService {
 //	}
 
 	// READ ALL
-	public List<Product> getAllProducts() {
-		return productRepository.findAll();
+	@Transactional(readOnly = true)
+	public List<ProductResponse> getAllProducts() {
+		return productRepository.findAll().stream().map(ProductResponse::fromEntity).toList();
 	}
+	/**Breaking Down .stream().map(ProductResponse::fromEntity).toList()
+		This single chain transforms a List<Product> into a List<ProductResponse>
+	 * List<Product>  ──.stream()──>  Stream<Product>  ──.map(...)──>  Stream<ProductResponse>  ──.toList()──>  List<ProductResponse>
+	 * The .map() function takes each incoming item from the stream, transforms it using a function you provide, 
+	 * and emits the new transformed item down the pipeline.
+	 * The syntax ProductResponse::fromEntity is a method reference in Java. 
+	 * It is shorthand for this lambda expression:   
+	 * 			Java.map(product -> ProductResponse.fromEntity(product))
+	 * Whenever an individual Product flows through the pipeline, Java passes it to your static method:
+	 * 
+			public static ProductResponse fromEntity(Product product) {
+			    return new ProductResponse(product.getId(), product.getName(), product.getPrice());
+			}
+		The stream shifts from a Stream<Product> into a Stream<ProductResponse>.
+			*/
 
 	// READ BY ID
 //	public Optional<Product> getProductById(Long id) {
@@ -63,9 +78,11 @@ public class ProductService {
 	 *  TO RESOLVE THIS:-- "Returning Product and Throwing an EXCEPTIONS" ------>>>>>>>>*/
 	
 	// THROW EXCEPTION IF NOT FOUND
-    public Product getProductById(Long id) {
-        return productRepository.findById(id)
+	@Transactional(readOnly = true)
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        return ProductResponse.fromEntity(product);
     }
     
     /**BENEFIT OF ABOVE - 
@@ -80,11 +97,14 @@ public class ProductService {
      */
     
  // THROW EXCEPTION IF UPDATING NON-EXISTENT PRODUCT
-    public Product updateProduct(Long id, Product updatedProduct) {
-        Product existing = getProductById(id); // reuses the check above
-        existing.setName(updatedProduct.getName());
-        existing.setPrice(updatedProduct.getPrice());
-        return productRepository.save(existing);
+    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+        Product existing = productRepository.findById(id)
+        		.orElseThrow(() -> new ResourceNotFoundException("Product not found with id:" + id)); // reuses the check above
+        existing.setName(productRequest.name());
+        existing.setPrice(productRequest.price());
+        Product updatedProduct = productRepository.save(existing);
+        return ProductResponse.fromEntity(updatedProduct);
+        
     }
 	
 	// DELETE
@@ -106,11 +126,13 @@ public class ProductService {
     
  // THROW EXCEPTION IF ADDING AN EXISTENT PRODUCT
  // CREATE/INSERT
-    public Product addProduct(Product product) {
-        if (!productRepository.findByNameContainingIgnoreCase(product.getName()).isEmpty()) {
-            throw new ResourceConflictException("A product with name '" + product.getName() + "' already exists.");
+    public ProductResponse addProduct(ProductRequest productRequest) {
+        if (!productRepository.findByNameContainingIgnoreCase(productRequest.name()).isEmpty()) {
+            throw new ResourceConflictException("A product with name '" + productRequest.name() + "' already exists.");
         }
-        return productRepository.save(product);
+        Product product = new Product(productRequest.name(), productRequest.price());
+        Product savedProduct = productRepository.save(product);
+        return ProductResponse.fromEntity(savedProduct);
     }
 
 	/**
@@ -125,22 +147,29 @@ public class ProductService {
 	// along with user defined query :-
 	
 	// Search by keyword ignoring cases
-    public List<Product> searchByNameIgnoreCase(String keyword) {
-        return productRepository.findByNameContainingIgnoreCase(keyword);
+    public List<ProductResponse> searchByNameIgnoreCase(String keyword) {
+         List<ProductResponse> byNameContainingIgnoreCase = 
+        		 productRepository.findByNameContainingIgnoreCase(keyword).stream().map(ProductResponse:: fromEntity).toList();
+         return byNameContainingIgnoreCase ;
+        		 
     }
 
     // Filter by max price
-    public List<Product> filterByMaxPrice(double maxPrice) {
-        return productRepository.findByPriceLessThanEqual(maxPrice);
+    public List<ProductResponse> filterByMaxPrice(double maxPrice) {
+        return productRepository.findByPriceLessThanEqual(maxPrice).stream().map(ProductResponse::fromEntity).toList();
     }
 
     // Filter by price range
-    public List<Product> filterByPriceRange(double min, double max) {
-        return productRepository.findProductsInPriceRange(min, max);
+    public List<ProductResponse> filterByPriceRange(double min, double max) {
+        return productRepository.findProductsInPriceRange(min, max).stream().map(ProductResponse::fromEntity).toList();
     }
     
     // Pagination
-    public Page<Product> getProductsPaginated(Pageable pageable) {
-        return productRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getProductsPaginated(Pageable pageable) {
+        return productRepository.findAll(pageable).map(product-> ProductResponse.fromEntity(product));
+//        return productRepository.findAll().stream().map(ProductResponse::fromEntity).toList();
+        // Both return statements are correct and can be used interchangeably.
+        
     }
 }

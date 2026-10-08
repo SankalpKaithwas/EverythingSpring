@@ -7,10 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "products")
@@ -30,13 +26,7 @@ public class Product {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
-	@NotBlank(message = "Product name is required and cannot be blank")
-	@Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters")
 	private String name;
-
-	@NotNull(message = "Price is required")
-	@Positive(message = "Price must be greater than zero")
 	private Double price;
 
 	// JPA requires a no-argument constructor
