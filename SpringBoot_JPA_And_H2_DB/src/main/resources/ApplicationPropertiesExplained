@@ -4,3 +4,12 @@
 
 # spring.jpa.hibernate.ddl-auto=update: Hibernate will inspect your @Entity classes (like Product.java) 
 and create the products table automatically without dropping existing records on restart.
+
+
+
+# %C{1.}: The class name abbreviated (e.g., c.e.s.j.h.s.ProductService or the simple class name ProductService 
+if configured as %C{1}).
+
+# %L: The exact line number in the source code where log.info(...) or log.error(...) was executed.
+
+# %m%n: The log message followed by a system newline.

@@ -39,7 +39,8 @@ public class JacksonConfig {
 }
 /** Deep Dive: How Jackson2ObjectMapperBuilderCustomizer Works in Spring Boot
 1. The Core Problem It Solves
-Spring Boot uses Jackson’s ObjectMapper under the hood to serialize Java objects to JSON/XML and deserialize incoming request bodies into Java classes.
+Spring Boot uses Jackson’s ObjectMapper under the hood to serialize Java objects to JSON/XML 
+and deserialize incoming request bodies into Java classes.
 
 Out of the box, Spring Boot applies extensive default configurations:
 
@@ -50,8 +51,8 @@ Configures parameter-name discovery for constructor bindings and Java Records
 Sets up standard HTTP message converters for Spring MVC
 
 The Traditional Anti-Pattern:
-Previously, if a developer wanted to enable a single feature (such as case-insensitive property matching), they often 
-defined their own ObjectMapper bean:
+Previously, if a developer wanted to enable a single feature (such as case-insensitive 
+property matching), they often defined their own ObjectMapper bean:
 
 Java
 // AVOID: Overrides and breaks Spring Boot defaults
@@ -61,11 +62,13 @@ public ObjectMapper objectMapper() {
     mapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
     return mapper; // Default date serializers, Record support, etc., are lost!
 }
-Defining a custom ObjectMapper directly replaces Spring Boot’s auto-configured bean entirely, which drops all out-of-the-box modules unless re-configured by hand.
+Defining a custom ObjectMapper directly replaces Spring Boot’s auto-configured bean entirely, 
+which drops all out-of-the-box modules unless re-configured by hand.
 
 2. The Solution: Jackson2ObjectMapperBuilderCustomizer
-Jackson2ObjectMapperBuilderCustomizer is a callback interface provided by Spring Boot. It allows modifying 
-the builder configuration additively before the final ObjectMapper is built, preserving all Spring Boot defaults.
+Jackson2ObjectMapperBuilderCustomizer is a callback interface provided by Spring Boot. It allows 
+modifying the builder configuration additively before the final ObjectMapper is built, 
+preserving all Spring Boot defaults.
 
 Interface Definition:
 Java

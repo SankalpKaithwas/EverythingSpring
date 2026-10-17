@@ -6,8 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,10 +22,12 @@ public class GlobalExceptionHandler {
 	 * it gets caught here instead of crashing or leaking stack traces.
 	 * @ExceptionHandler: Maps a specific Java exception class to a handling method.*/
 	
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 	
 	// Catches our custom ResourceNotFoundException
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse<String>> handleResourceNotFound(ResourceNotFoundException ex) {
+		log.warn("ResourceNotFoundException handled: {}", ex.getMessage());
 		ErrorResponse<String> error = new ErrorResponse<>(HttpStatus.NOT_FOUND.value(), // 404
 				HttpStatus.NOT_FOUND.getReasonPhrase(), ex.getMessage(), LocalDateTime.now());
 		return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
@@ -32,6 +37,7 @@ public class GlobalExceptionHandler {
 	// errors)
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse<String>> handleGeneralException(Exception ex) {
+		log.error("Unhandled server exception caught: ", ex.getMessage(), ex);
 		ErrorResponse<String> error = new ErrorResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), // 500
 				HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), "An unexpected error occurred: " + ex.getMessage(),
 				LocalDateTime.now());
@@ -41,6 +47,7 @@ public class GlobalExceptionHandler {
 	// Handles validation / bad input errors (400 Bad Request)
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<ErrorResponse<String>> handleBadRequest(IllegalArgumentException ex) {
+		log.error("IllegalArgumentException handled: ", ex.getMessage(), ex);
 		ErrorResponse<String> error = new ErrorResponse<>(HttpStatus.BAD_REQUEST.value(),
 				HttpStatus.BAD_REQUEST.getReasonPhrase(), ex.getMessage(), LocalDateTime.now());
 		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -49,6 +56,7 @@ public class GlobalExceptionHandler {
 	// If you don't want two products with the exact same name, create a custom conflict exception:
 	@ExceptionHandler(ResourceConflictException.class)
 	public ResponseEntity<ErrorResponse<String>> handleConflict(ResourceConflictException ex) {
+		log.error("ResourceConflictException handled: ", ex.getMessage(), ex);
 	    ErrorResponse<String> error = new ErrorResponse<>(
 	        HttpStatus.CONFLICT.value(), // 409
 	        HttpStatus.CONFLICT.getReasonPhrase(),
@@ -60,7 +68,8 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorResponse<Map<String, List<String>>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-	    Map<String, List<String>> fieldErrors = new HashMap<>();
+		log.error("MethodArgumentNotValidException handled: ", ex.getMessage(), ex);
+		Map<String, List<String>> fieldErrors = new HashMap<>();
 
 //	    ex.getBindingResult().getFieldErrors().forEach(error -> 
 //	        fieldErrors.put(error.getField(), error.getDefaultMessage())
@@ -80,6 +89,17 @@ public class GlobalExceptionHandler {
 		        LocalDateTime.now()
 		    );
 	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ErrorResponse<String>> handleUnreadable(HttpMessageNotReadableException ex) {
+		log.error("HttpMessageNotReadableException handled: ", ex.getMessage(), ex);
+		ErrorResponse<String> error = new ErrorResponse<>(
+				HttpStatus.BAD_REQUEST.value(),
+				HttpStatus.BAD_REQUEST.getReasonPhrase(),
+				"Malformed request body",
+				LocalDateTime.now());
+		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 	}
 
 }

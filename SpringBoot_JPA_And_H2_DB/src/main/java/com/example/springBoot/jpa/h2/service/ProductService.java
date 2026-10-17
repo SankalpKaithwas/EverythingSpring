@@ -2,11 +2,14 @@ package com.example.springBoot.jpa.h2.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.springBoot.jpa.h2.dto.ProductPatchRequest;
 import com.example.springBoot.jpa.h2.dto.ProductRequest;
 import com.example.springBoot.jpa.h2.dto.ProductResponse;
 import com.example.springBoot.jpa.h2.exceptions.ResourceConflictException;
@@ -18,6 +21,8 @@ import com.example.springBoot.jpa.h2.repository.ProductRepository;
 @Transactional
 public class ProductService {
 
+	// Define logger instance for this class
+    private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 	private final ProductRepository productRepository;
 
 	// Constructor Injection
@@ -80,8 +85,13 @@ public class ProductService {
 	// THROW EXCEPTION IF NOT FOUND
 	@Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
+		log.debug("Fetching product details for id={}", id);
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+                .orElseThrow(() -> { 
+                	log.warn("Lookup failed: Product id={} does not exist", id);
+                	return new ResourceNotFoundException("Product not found with id: " + id);
+                	});                
+        
         return ProductResponse.fromEntity(product);
     }
     
@@ -97,16 +107,16 @@ public class ProductService {
      */
     
  // THROW EXCEPTION IF UPDATING NON-EXISTENT PRODUCT
-    public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
-        Product existing = productRepository.findById(id)
-        		.orElseThrow(() -> new ResourceNotFoundException("Product not found with id:" + id)); // reuses the check above
-        existing.setName(productRequest.name());
-        existing.setPrice(productRequest.price());
-        Product updatedProduct = productRepository.save(existing);
-        return ProductResponse.fromEntity(updatedProduct);
-        
-    }
-	
+	public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
+		Product existing = productRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Product not found with id:" + id)); // reuses the check above
+			existing.setName(productRequest.name());
+			existing.setPrice(productRequest.price());
+			Product updatedProduct = productRepository.save(existing);
+			return ProductResponse.fromEntity(updatedProduct);
+	}
+
 	// DELETE
 //	public boolean deleteProduct(Long id) {
 //		if (productRepository.existsById(id)) {
@@ -118,20 +128,25 @@ public class ProductService {
     
  // THROW EXCEPTION IF DELETING NON-EXISTENT PRODUCT
     public void deleteProduct(Long id) {
+    	log.info("Attempting deletion of product id={}", id);
         if (!productRepository.existsById(id)) {
+        	log.warn("Delete aborted: Product id={} does not exist", id);
             throw new ResourceNotFoundException("Cannot delete: Product not found with id: " + id);
         }
         productRepository.deleteById(id);
+        log.info("Successfully deleted product id={}", id);
     }
     
  // THROW EXCEPTION IF ADDING AN EXISTENT PRODUCT
  // CREATE/INSERT
     public ProductResponse addProduct(ProductRequest productRequest) {
+    	log.info("Creating new product with name='{}' and price={}", productRequest.name(), productRequest.price());
         if (!productRepository.findByNameContainingIgnoreCase(productRequest.name()).isEmpty()) {
             throw new ResourceConflictException("A product with name '" + productRequest.name() + "' already exists.");
         }
         Product product = new Product(productRequest.name(), productRequest.price());
         Product savedProduct = productRepository.save(product);
+        log.info("Product created successfully with assigned id={}", savedProduct.getId());
         return ProductResponse.fromEntity(savedProduct);
     }
 
@@ -172,4 +187,40 @@ public class ProductService {
         // Both return statements are correct and can be used interchangeably.
         
     }
+    
+    public ProductResponse patchProduct(Long id, ProductPatchRequest patchRequest) {
+    	log.info("Applying partial update on product id={}", id);
+		Product existingProduct = productRepository.findById(id)
+				.orElseThrow(() -> {
+			log.warn("Patch failed: Product id={} not found", id);
+			return new ResourceNotFoundException("Product not found with id: " + id);
+		});
+		
+		if (patchRequest.productName() == null && patchRequest.price() == null) {
+			log.error("Patch rejected: Empty name and price string supplied for product id={}", id);
+			throw new IllegalArgumentException("At least one of ‘name’ or ‘price’ must be provided");
+		}
+
+        // Update name only if supplied and not purely blank whitespace
+        if (patchRequest.productName() != null) {
+            String trimmedName = patchRequest.productName().trim();
+            if (trimmedName.isEmpty()) {
+            	log.error("Patch rejected: Empty name string supplied for product id={}", id);
+                throw new IllegalArgumentException("Product name cannot be empty or blank when provided");
+            }
+            log.debug("Updating name for id={} from '{}' to '{}'", id, existingProduct.getName(), trimmedName);
+            existingProduct.setName(trimmedName);
+        }
+
+        // Update price only if supplied
+        if (patchRequest.price() != null) {
+        	log.debug("Updating price for id={} from {} to {}", id, existingProduct.getPrice(), patchRequest.price());
+            existingProduct.setPrice(patchRequest.price());
+        }
+
+        Product updatedProduct = productRepository.save(existingProduct);
+        log.info("Successfully patched product id={}", updatedProduct.getId());
+        return ProductResponse.fromEntity(updatedProduct);
+    }
+    
 }

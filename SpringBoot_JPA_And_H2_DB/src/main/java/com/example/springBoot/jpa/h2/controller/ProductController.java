@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.springBoot.jpa.h2.dto.ProductPatchRequest;
 import com.example.springBoot.jpa.h2.dto.ProductRequest;
 import com.example.springBoot.jpa.h2.dto.ProductResponse;
 import com.example.springBoot.jpa.h2.model.ApiResponse;
@@ -67,7 +69,7 @@ public class ProductController {
 	public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest product) {
 		ProductResponse saved = productService.addProduct(product);
 		return ResponseEntity.status(HttpStatus.CREATED).
-				body(ApiResponse.success("Product Created Succesfully", saved));
+				body(ApiResponse.success("Product Created Successfully", saved));
 	}
 
 	// 4. PUT (Update): http://localhost:8080/api/products/1
@@ -103,10 +105,12 @@ public class ProductController {
 		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
 	}
 	
+	//With PUT, you must fetch the existing resource first, update the one
+	//value locally, and send back the entire representation (all tags/fields).
 	// PUT (Update): http://localhost:8080/api/products/1
-	@PutMapping(path = "/{id}", 
-	        consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest productRequest) {
+	@PutMapping(path = "/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id,
+			@Valid @RequestBody ProductRequest productRequest) {
 		ProductResponse updated = productService.updateProduct(id, productRequest);
 		return ResponseEntity.ok(ApiResponse.success("Updated Successfully", updated));
 	}
@@ -122,10 +126,16 @@ public class ProductController {
 	
 	// Search endpoint: http://localhost:8080/api/products/search?keyword=mouse
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(@RequestParam String keyword) {
-       List<ProductResponse> product =  productService.searchByNameIgnoreCase(keyword);
-       return ResponseEntity.ok(ApiResponse.success(String.format("Found Product(s) matching '%s' - ", keyword), product));
-    }
+	public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(@RequestParam String keyword) {
+		List<ProductResponse> product = productService.searchByNameIgnoreCase(keyword);
+		if (!product.isEmpty()) {
+			return ResponseEntity
+					.ok(ApiResponse.success(String.format("Found Product(s) matching '%s' - ", keyword), product));
+		} else {
+			return ResponseEntity.ok(
+					ApiResponse.success(String.format("No Product(s) Found matching keyword '%s'", keyword), null));
+		}
+	}
 	
     // Filter by max price: http://localhost:8080/api/products/filter?maxPrice=50.0
     @GetMapping("/filter")
@@ -152,5 +162,13 @@ public class ProductController {
 	    @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
 	    return ResponseEntity.ok(ApiResponse.success(productService.getProductsPaginated(pageable)))   ;
 	}
+	
+	@PatchMapping(path = "/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<ApiResponse<ProductResponse>> patchProduct(@PathVariable Long id,
+			@Valid @RequestBody ProductPatchRequest patchRequest) {
+		ProductResponse updated = productService.patchProduct(id, patchRequest);
+		return ResponseEntity.ok(ApiResponse.success("Product partially updated successfully", updated));
+	}
+	
 	
 }
