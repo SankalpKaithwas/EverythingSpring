@@ -28,20 +28,26 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	/**
 	 * In a real app, users don't just fetch by ID or retrieve every single record.
-	 * They want to: 
- 		Search products by name (e.g., “Find all items containing ‘Mouse’”),
- 		 Filter products cheaper than a certain budget, 
- 		 Sort results or find an exact match.
- 	 * Spring Data JPA lets you write these queries without
+	 * They want to: Search products by name (e.g., “Find all items containing
+	 * ‘Mouse’”), Filter products cheaper than a certain budget, Sort results or
+	 * find an exact match. Spring Data JPA lets you write these queries without
 	 * writing a single line of implementation code — you just declare method
-	 * signatures in your repository interface. 
-	 * Spring Data parses the method name and automatically translates it into the underlying SQL query.
+	 * signatures in your repository interface. Spring Data parses the method name
+	 * and automatically translates it into the underlying SQL query.
 	 * 
 	 * USE # in a comment block to see all the inbuilt query methods available.
-	 * (just write # on a new line of comment block to see all methods available  )
+	 * (just write # on a new line of comment block to see all methods available )
 	 * 
-	 * Notice you write no SQL or Java implementation code for the first three—Spring inspects 
-	 * the keywords (find...By, Containing, IgnoreCase, LessThanEqual) and builds the SQL dynamically.
+	 * Notice you write no SQL or Java implementation code for the first
+	 * three—Spring inspects the keywords (find...By, Containing, IgnoreCase,
+	 * LessThanEqual) and builds the SQL dynamically.
+	 * 
+	 * Spring Data reads the method name and builds the query from its keywords:	 * 
+	 * | Part of the name | Meaning 													 | 
+	 * | findBy           | SELECT rows 												 |
+	 * | Name             | filter on the name field                                     |
+	 * | Containing       | LIKE '%value%', so the value can appear anywhere in the name |
+	 * | IgnoreCase       |compare in lower case on both sides
 	 */
 	
 	// Below are the user defined queries ->
@@ -65,5 +71,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 //    JpaRepository already implements PagingAndSortingRepository so no need to explicitly specify for JpaRepository
     // provided methods. HOWEVER User Defined methods needs to specify. Example - .
     // Paginated custom search - 
-    Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable); // Not implemented
+//    Page<Product> findByNameContainingIgnoreCase(String productName, Pageable pageable); // Not implemented
+    
+    // Query - SELECT NAME FROM 'TABLE_NAME' WHERE NAME = ? 
+    boolean existsByNameEqualsIgnoreCase(String productName);
+	
+	boolean existsByNameIgnoreCaseAndIdNot(String productName, long id);
+	
+	
+	
 }

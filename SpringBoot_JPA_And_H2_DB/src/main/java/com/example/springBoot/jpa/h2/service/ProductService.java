@@ -106,15 +106,21 @@ public class ProductService {
 	}
      */
     
- // THROW EXCEPTION IF UPDATING NON-EXISTENT PRODUCT
+	// THROW EXCEPTION IF UPDATING NON-EXISTENT PRODUCT
 	public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
 		Product existing = productRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException(
-						"Product not found with id:" + id)); // reuses the check above
-			existing.setName(productRequest.name());
-			existing.setPrice(productRequest.price());
-			Product updatedProduct = productRepository.save(existing);
-			return ProductResponse.fromEntity(updatedProduct);
+				.orElseThrow(() -> new ResourceNotFoundException("Product not found with id:" + id));
+		String trimmedName = productRequest.name().trim();
+
+		boolean nameTakenByAnotherProduct = productRepository.existsByNameIgnoreCaseAndIdNot(trimmedName, id);
+		if (nameTakenByAnotherProduct) {
+			throw new ResourceConflictException("Product already exists with same name: " + trimmedName);
+		}
+
+		existing.setName(trimmedName);
+		existing.setPrice(productRequest.price());
+		Product updatedProduct = productRepository.save(existing);
+		return ProductResponse.fromEntity(updatedProduct);
 	}
 
 	// DELETE
@@ -140,11 +146,12 @@ public class ProductService {
  // THROW EXCEPTION IF ADDING AN EXISTENT PRODUCT
  // CREATE/INSERT
     public ProductResponse addProduct(ProductRequest productRequest) {
-    	log.info("Creating new product with name='{}' and price={}", productRequest.name(), productRequest.price());
-        if (!productRepository.findByNameContainingIgnoreCase(productRequest.name()).isEmpty()) {
-            throw new ResourceConflictException("A product with name '" + productRequest.name() + "' already exists.");
+    	String trimmedName = productRequest.name().trim();
+    	log.info("Creating new product with name='{}' and price={}", trimmedName, productRequest.price());
+        if (productRepository.existsByNameEqualsIgnoreCase(trimmedName)) {
+            throw new ResourceConflictException("A product with name '" + trimmedName + "' already exists.");
         }
-        Product product = new Product(productRequest.name(), productRequest.price());
+        Product product = new Product(trimmedName, productRequest.price());
         Product savedProduct = productRepository.save(product);
         log.info("Product created successfully with assigned id={}", savedProduct.getId());
         return ProductResponse.fromEntity(savedProduct);
@@ -162,9 +169,10 @@ public class ProductService {
 	// along with user defined query :-
 	
 	// Search by keyword ignoring cases
-    public List<ProductResponse> searchByNameIgnoreCase(String keyword) {
+    public List<ProductResponse> searchByNameIgnoreCase(String productName) {
          List<ProductResponse> byNameContainingIgnoreCase = 
-        		 productRepository.findByNameContainingIgnoreCase(keyword).stream().map(ProductResponse:: fromEntity).toList();
+        		 productRepository.findByNameContainingIgnoreCase(productName)
+        		 .stream().map(ProductResponse:: fromEntity).toList();
          return byNameContainingIgnoreCase ;
         		 
     }
@@ -207,6 +215,11 @@ public class ProductService {
             if (trimmedName.isEmpty()) {
             	log.error("Patch rejected: Empty name string supplied for product id={}", id);
                 throw new IllegalArgumentException("Product name cannot be empty or blank when provided");
+            }
+            
+            if(productRepository.existsByNameIgnoreCaseAndIdNot(trimmedName, id)) {
+            	log.error("Patch rejected: Product with Same Name Exists. Cannot Patch for product id={}", id);
+            	throw new ResourceConflictException("Product already exists with name: " + trimmedName);
             }
             log.debug("Updating name for id={} from '{}' to '{}'", id, existingProduct.getName(), trimmedName);
             existingProduct.setName(trimmedName);

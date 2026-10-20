@@ -92,12 +92,6 @@ public class ProductController {
 	
 	// After Exception Handling ----->>>
 	
-	@GetMapping("/search/")
-	public ResponseEntity<ApiResponse<ProductResponse>> getByName(@PathVariable Long id) {
-		ProductResponse product = productService.getProductById(id);
-		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", product));
-	}
-	
 	// GET by ID : http://localhost:8080/api/products/1
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<ProductResponse>> getById(@PathVariable Long id) {
@@ -124,16 +118,16 @@ public class ProductController {
 	
 	/** Adding CUSTOM Query Endpoints - */
 	
-	// Search endpoint: http://localhost:8080/api/products/search?keyword=mouse
+	// Search endpoint: http://localhost:8080/api/products/search?productName=mouse
     @GetMapping("/search")
-	public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProducts(@RequestParam String keyword) {
-		List<ProductResponse> product = productService.searchByNameIgnoreCase(keyword);
+	public ResponseEntity<ApiResponse<List<ProductResponse>>> searchProductsByName(@RequestParam String productName) {
+		List<ProductResponse> product = productService.searchByNameIgnoreCase(productName);
 		if (!product.isEmpty()) {
 			return ResponseEntity
-					.ok(ApiResponse.success(String.format("Found Product(s) matching '%s' - ", keyword), product));
+					.ok(ApiResponse.success(String.format("Found Product(s) matching '%s' - ", productName), product));
 		} else {
 			return ResponseEntity.ok(
-					ApiResponse.success(String.format("No Product(s) Found matching keyword '%s'", keyword), null));
+					ApiResponse.success(String.format("No Product(s) Found matching keyword '%s'", productName), null));
 		}
 	}
 	
