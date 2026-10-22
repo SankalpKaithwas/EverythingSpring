@@ -42,20 +42,12 @@ public class ProductController {
 		this.productService = productService;
 	}
 
-	// 1. GET ALL: http://localhost:8080/api/products
+	// GET ALL: http://localhost:8080/api/products
 	@GetMapping
 	public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll() {
 		List<ProductResponse> allProducts = productService.getAllProducts();
 		return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", allProducts));
-	}
-
-	// 2. GET BY ID: http://localhost:8080/api/products/1
-//	@GetMapping("/{id}")
-//	public ResponseEntity<Product> getById(@PathVariable Long id) {
-//		return productService.getProductById(id).map(product -> ResponseEntity.ok(product))
-//				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-//	}
-	
+	}	
 	
 	/** Rule of Thumb: If the client passes Accept: application/json, Spring responds with JSON. 
 	 * If the client passes Accept: application/xml, Spring responds with XML. If no Accept header is specified, Spring defaults to JSON.
@@ -64,33 +56,13 @@ public class ProductController {
 		format-agnostic: it accepts both JSON and XML based on the client's headers.
 	 */
 		
-	// 3. POST (Create): http://localhost:8080/api/products
+	// POST (Create): http://localhost:8080/api/products
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest product) {
 		ProductResponse saved = productService.addProduct(product);
 		return ResponseEntity.status(HttpStatus.CREATED).
 				body(ApiResponse.success("Product Created Successfully", saved));
 	}
-
-	// 4. PUT (Update): http://localhost:8080/api/products/1
-//	@PutMapping("/{id}")
-//	public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-//		return productService.updateProduct(id, product).map(updated -> ResponseEntity.ok(updated))
-//				.orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
-//	}
-
-	// 5. DELETE: http://localhost:8080/api/products/1
-//	@DeleteMapping("/{id}")
-//	public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-//		boolean deleted = productService.deleteProduct(id);
-//		if (deleted) {
-//			return ResponseEntity.noContent().build(); // HTTP 204 No Content
-//		}
-//		return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // HTTP 404
-//	}
-
-	
-	// After Exception Handling ----->>>
 	
 	// GET by ID : http://localhost:8080/api/products/1
 	@GetMapping("/{id}")

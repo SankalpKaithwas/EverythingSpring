@@ -14,6 +14,12 @@ public record ProductPatchRequest(
 
 		@Positive(message = "Price must be greater than zero") 
 		Double price) {
+	
+	public ProductPatchRequest{
+		if(productName!=null) {
+			productName = productName.trim();
+		}
+	}
 
 }
 

@@ -100,7 +100,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(
 			HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-		log.warn("HttpMessageNotReadableException handled: {}", ex.getMessage(), ex);
+		log.warn("HttpMessageNotReadableException handled: {}", ex.getMessage(), ex); 
 		ErrorResponse<String> error = new ErrorResponse<>(
 				status.value(),
 				HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -124,7 +124,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 		
 		// 1. Already in our envelope (validation, malformed JSON): keep it as is
 	    if (body instanceof ErrorResponse) {
-	    	log.error("handleExceptionInternal: {} [{}]", ex, request.getDescription(false));
+	    	log.error("handleExceptionInternal: [{}]", request.getDescription(false), ex);
 	        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
 	    }
 	    
@@ -151,9 +151,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 	@ExceptionHandler(PropertyReferenceException.class)
 	public ResponseEntity<ErrorResponse<String>> 
 			handlePropertyReferenceException(PropertyReferenceException ex, WebRequest request) {
-		log.warn("handleProPropertyReferenceException: {} [{}]",
-				ex.getMessage(), request.getDescription(false));
-	
+		log.warn("handlePropertyReferenceException: [{}]", request.getDescription(false),
+				ex);
+
 		ErrorResponse<String> errorResponse = new ErrorResponse<String>(HttpStatus.BAD_REQUEST.value(),
 				HttpStatus.BAD_REQUEST.getReasonPhrase(),"Invalid Sort property: " + ex.getPropertyName(),
 				LocalDateTime.now());
