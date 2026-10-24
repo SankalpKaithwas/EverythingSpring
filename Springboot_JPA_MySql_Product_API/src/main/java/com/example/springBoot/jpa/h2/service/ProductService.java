@@ -187,8 +187,6 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsPaginated(Pageable pageable) {
         return productRepository.findAll(pageable).map(product-> ProductResponse.fromEntity(product));
-//        return productRepository.findAll().stream().map(ProductResponse::fromEntity).toList();
-        // Both return statements are correct and can be used interchangeably.
     }
     
     public ProductResponse patchProduct(Long id, ProductPatchRequest patchRequest) {

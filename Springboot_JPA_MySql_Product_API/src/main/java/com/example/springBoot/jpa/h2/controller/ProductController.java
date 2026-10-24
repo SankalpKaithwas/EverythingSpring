@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -137,9 +138,11 @@ public class ProductController {
     
 	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
 	@GetMapping("/paged")
-	public ResponseEntity<ApiResponse<Page<ProductResponse>>> 
+	public ResponseEntity<ApiResponse<PagedModel<ProductResponse>>> 
 			getProductsPaged(@PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
-	    return ResponseEntity.ok(ApiResponse.success(productService.getProductsPaginated(pageable)))   ;
+	
+		Page<ProductResponse> page = productService.getProductsPaginated(pageable);
+	    return ResponseEntity.ok(ApiResponse.success(new PagedModel<ProductResponse>(page)))   ;
 	}
 	
 	@PatchMapping(path = "/{id}", 
