@@ -127,6 +127,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers,
 			HttpStatusCode statusCode, WebRequest request) {
 		
+		// All exceptions for which there are no handlers comes here under handleExceptionInternal.
 		if(statusCode.is5xxServerError()) {
 			log.error("handleExceptionInternal: [{}]", request.getDescription(false),ex);
 		}
@@ -151,7 +152,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 
 		ErrorResponse<String> errorResponse = 
 				new ErrorResponse<String>(statusCode.value(), 
-						reason,detail, LocalDateTime.now());
+						reason, detail, LocalDateTime.now());
 		return super.handleExceptionInternal(ex, errorResponse, headers, statusCode, request);
 	}
 	
@@ -180,4 +181,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 				HttpStatus.CONFLICT.getReasonPhrase(),"Request conflicts with existing data", LocalDateTime.now());
 		return new ResponseEntity<>(errorResponse,HttpStatus.CONFLICT);
 	}
+	// To test DataIntegrityViolationException, we need to remove the existsByNameEqualsIgnoreCase condition
+	// in createProduct method. Because we have unique constraint on name, two products with same name is not
+	// allowed.(From the database side this error is thrown)
 }
