@@ -89,6 +89,9 @@ public class ProductController {
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
 		productService.deleteProduct(id);
+//		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+		/** Above code is standard way to return the response of a DELETE call. */
+		// Just return body with some value for audit or for undo, use below - 
 		return ResponseEntity.ok(ApiResponse.success("Product Deleted Successfully",null));
 	}
 	
