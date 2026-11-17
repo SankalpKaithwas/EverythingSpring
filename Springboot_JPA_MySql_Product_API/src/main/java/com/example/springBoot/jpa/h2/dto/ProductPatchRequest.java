@@ -12,7 +12,7 @@ public record ProductPatchRequest(
 		@Size(min = 2, max = 100, message = "Product name must be between 2 and 100 characters") 
 //		@JacksonXmlProperty(localName = "name")
 		@JsonProperty("name")
-		String productName,
+		String name,
 
 		@Positive(message = "Price must be greater than zero") 
 		@Digits(integer = 8, fraction = 2,
@@ -20,8 +20,8 @@ public record ProductPatchRequest(
 		BigDecimal price) {
 	
 	public ProductPatchRequest {
-		if (productName != null) {
-			productName = productName.trim();
+		if (name != null) {
+			name = name.trim();
 		}
 		if (price != null && price.scale() < 2) {
 			price = price.setScale(2);

@@ -116,7 +116,7 @@ public class ProductService {
 
 		boolean nameTakenByAnotherProduct = productRepository.existsByNameIgnoreCaseAndIdNot(trimmedName, id);
 		if (nameTakenByAnotherProduct) {
-			throw new ResourceConflictException("Product already exists with same name: " + trimmedName);
+			throw new ResourceConflictException("A product with name '" + trimmedName + "' already exists.");
 		}
 
 		existing.setName(trimmedName);
@@ -197,14 +197,14 @@ public class ProductService {
 			return new ResourceNotFoundException("Product not found with id: " + id);
 		});
 		
-		if (patchRequest.productName() == null && patchRequest.price() == null) {
+		if (patchRequest.name() == null && patchRequest.price() == null) {
 			log.debug("Patch rejected: No name or price supplied for product id={}", id);
 			throw new BadRequestException("At least one of ‘name’ or ‘price’ must be provided");
 		}
 
         // Update name only if supplied and not purely blank whitespace
-        if (patchRequest.productName() != null) {
-            String trimmedName = patchRequest.productName().trim();
+        if (patchRequest.name() != null) {
+            String trimmedName = patchRequest.name().trim();
             if (trimmedName.isEmpty()) {
             	log.debug("Patch rejected: Empty name string supplied for product id={}", id);
                 throw new BadRequestException("Product name cannot be empty or blank when provided");
@@ -212,7 +212,7 @@ public class ProductService {
             
             if(productRepository.existsByNameIgnoreCaseAndIdNot(trimmedName, id)) {
             	log.warn("Patch rejected: Product with Same Name Exists. Cannot Patch for product id={}", id);
-            	throw new ResourceConflictException("Product already exists with name: " + trimmedName);
+            	throw new ResourceConflictException("A product with name '" + trimmedName + "' already exists.");
             }
             log.debug("Updating name for id={} from '{}' to '{}'", id, existingProduct.getName(), trimmedName);
             existingProduct.setName(trimmedName);

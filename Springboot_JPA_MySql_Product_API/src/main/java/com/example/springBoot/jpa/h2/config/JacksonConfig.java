@@ -3,12 +3,21 @@ package com.example.springBoot.jpa.h2.config;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.PagedModel.PageMetadata;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 @Configuration
 public class JacksonConfig {
+	
+	// Mix-in to rename the default "page" property to "Page"
+    public abstract static class PagedModelMixin {
+        @JsonProperty("Page")
+        abstract PageMetadata getMetadata();
+    }
 
 	@Bean
 	public Jackson2ObjectMapperBuilderCustomizer caseInsensitiveCustomizer() {
@@ -33,6 +42,8 @@ public class JacksonConfig {
 			
 			// Output PascalCase/UpperCamelCase ("StatusCode", "Price", "Name")
 			builder.propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
+			
+			builder.mixIn(PagedModel.class, PagedModelMixin.class);
 		};
 	}
 
