@@ -2,9 +2,9 @@ package com.example.springBoot.jpa.h2.model;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JacksonXmlRootElement(localName = "ApiResponse")
+@JsonRootName(value = "ApiResponse")
 public class ApiResponse<T> {
 
 	private boolean success;
