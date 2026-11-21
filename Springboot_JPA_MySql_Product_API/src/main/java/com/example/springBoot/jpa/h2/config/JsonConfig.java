@@ -7,7 +7,6 @@ import org.springframework.data.web.PagedModel;
 
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.SerializationFeature;
 
 @Configuration
 public class JsonConfig {
