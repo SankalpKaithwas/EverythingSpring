@@ -1,14 +1,14 @@
-package com.example.springBoot.jpa.h2;
+package com.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-public class Springboot_JPA_MySql_Product_API 
+public class ProductApiApplication 
 {
     public static void main( String[] args )
     {
-    	SpringApplication.run(Springboot_JPA_MySql_Product_API.class, args);
+    	SpringApplication.run(ProductApiApplication.class, args);
     }
 }

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.3</version>
+		<version>3.5.16</version>
 		<!-- <version>4.1.1</version> This version causes bound errors as well
 		as WebServlet related errors to use h2db. SO use 3x version -->
 		<relativePath /> <!-- lookup parent from repository -->

@@ -81,8 +81,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(
 			MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		
-		log.warn("MethodArgumentNotValidException handled: [{}] {}", request.getDescription(false),
-				ex.getFieldErrors());
 		LinkedHashMap<String, List<String>> fieldErrors = new LinkedHashMap<>();
 
 	    // Adding all the error messages related to "input" field (Any field).
@@ -92,6 +90,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
 			.add(error.getDefaultMessage());
 		});
 	    
+		log.warn("MethodArgumentNotValidException handled: [{}] {}", request.getDescription(false),
+				fieldErrors);
+		
 		ErrorResponse<Map<String, List<String>>> errorResponse = new ErrorResponse<>(
 				status.value(),
 		        "Validation failed",
