@@ -2,7 +2,7 @@ package com.example.springBoot.jpa.h2.model;
 
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,8 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "products", uniqueConstraints = @UniqueConstraint(name = "uk_products_name", columnNames = "Name"))
-@JacksonXmlRootElement(localName = "Product")
+@Table(name = "products", uniqueConstraints = @UniqueConstraint(name = "uk_products_name", columnNames = "name"))
+@JsonRootName(value = "Product")
 public class Product {
 
 	/**

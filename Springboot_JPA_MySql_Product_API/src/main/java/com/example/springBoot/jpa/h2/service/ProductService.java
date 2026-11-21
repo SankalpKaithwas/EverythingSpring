@@ -57,20 +57,6 @@ public class ProductService {
 			}
 		The stream shifts from a Stream<Product> into a Stream<ProductResponse>.
 			*/
-
-	// READ BY ID
-//	public Optional<Product> getProductById(Long id) {
-//		return productRepository.findById(id);
-//	}
-
-	// UPDATE
-//	public Optional<Product> updateProduct(Long id, Product updatedProduct) {
-//		return productRepository.findById(id).map(existingProduct -> {
-//			existingProduct.setName(updatedProduct.getName());
-//			existingProduct.setPrice(updatedProduct.getPrice());
-//			return productRepository.save(existingProduct); // save() performs an UPDATE if ID exists
-//		});
-//	}
 	
 	/** Using Optional - 
 	 * What it means: The service says, "Here is a box that might contain a Product, or might be empty. 
