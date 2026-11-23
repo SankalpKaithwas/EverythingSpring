@@ -19,7 +19,7 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,
-			RestAuthenticationEntryPoint entryPoint) {
+			RestAuthenticationEntryPoint entryPoint, RestAccessDeniedHandler deniedHandler) {
 
 		// 1. Disable CSRF because this is a stateless REST API (not browser form
 		// sessions)
@@ -48,8 +48,8 @@ public class SecurityConfig {
 						 * hasRole("ADMIN") is compared against the authority ROLE_ADMIN; Spring adds
 						 * the ROLE_ prefix itself.
 						 */
-				.exceptionHandling(ex -> 
-				ex.authenticationEntryPoint(entryPoint))
+				.exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint)) // Custom handlers
+				.exceptionHandling(ex -> ex.accessDeniedHandler(deniedHandler))
 
 				// 4. Enable HTTP Basic Authentication
 			.httpBasic(basic -> basic.authenticationEntryPoint(entryPoint));
