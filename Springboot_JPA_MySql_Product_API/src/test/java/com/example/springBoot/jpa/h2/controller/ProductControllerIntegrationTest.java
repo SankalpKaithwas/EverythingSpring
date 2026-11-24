@@ -4,7 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.DisplayName;
@@ -40,13 +40,15 @@ public class ProductControllerIntegrationTest {
 
         // 1. Post to create the product
         mockMvc.perform(post("/api/products")
-                .contentType(MediaType.APPLICATION_JSON)
+        		.with(httpBasic("admin", "adminuser"))
+                .contentType(MediaType.APPLICATION_JSON)                
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.Data.Name").value("Wireless Presenter"));
 
         // 2. Query the search endpoint to confirm persistence
         mockMvc.perform(get("/api/products/search")
+        		.with(httpBasic("admin", "adminuser"))
                 .param("productName", "Wireless Presenter")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
