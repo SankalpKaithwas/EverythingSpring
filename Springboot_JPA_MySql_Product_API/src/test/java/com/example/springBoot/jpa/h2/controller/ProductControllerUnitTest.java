@@ -3,7 +3,9 @@ package com.example.springBoot.jpa.h2.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -23,11 +25,16 @@ import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.core.TypeInformation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.example.springBoot.jpa.h2.config.JsonConfig;
+import com.example.springBoot.jpa.h2.config.RestAccessDeniedHandler;
+import com.example.springBoot.jpa.h2.config.RestAuthenticationEntryPoint;
+import com.example.springBoot.jpa.h2.config.SecurityConfig;
 import com.example.springBoot.jpa.h2.config.XmlConfig;
 import com.example.springBoot.jpa.h2.dto.ProductRequest;
 import com.example.springBoot.jpa.h2.dto.ProductResponse;
@@ -43,7 +50,9 @@ import tools.jackson.databind.ObjectMapper;
 //@WebMvcTest mocks the service and never touches a database and only loads what you import explicitly
 
 @WebMvcTest(ProductController.class)
-@Import({ XmlConfig.class, GlobalExceptionHandler.class, JsonConfig.class })
+@Import({ XmlConfig.class, GlobalExceptionHandler.class, JsonConfig.class, 
+	SecurityConfig.class, RestAuthenticationEntryPoint.class, RestAccessDeniedHandler.class })
+@WithMockUser(roles = "ADMIN")
 public class ProductControllerUnitTest {
 
 	@Autowired
@@ -73,8 +82,56 @@ public class ProductControllerUnitTest {
 				.andExpect(jsonPath("$.Data[0].Name").value("Mechanical Keyboard"))
 				.andExpect(jsonPath("$.Data[0].Price").value(110.00));
 	}
-
+	
+	@WithMockUser(roles ="USER")
 	@Test
+	@DisplayName("GET /api/products - Should return 200 Success for Authenticated user")
+	void shouldReturnAllProductsWithPascalCaseForUserRole() throws Exception {
+		List<ProductResponse> mockList = List.of(
+				new ProductResponse(1L, "Mechanical Keyboard", new BigDecimal("110.00")),
+				new ProductResponse(2L, "Optical Mouse", new BigDecimal("25.00")));
+
+		when(productService.getAllProducts()).thenReturn(mockList);
+
+		ResultActions perform = mockMvc.perform(get("/api/products").accept(MediaType.APPLICATION_JSON));
+
+		perform.andExpect(status().isOk()).andExpect(jsonPath("$.Success").value(true))
+				.andExpect(jsonPath("$.Message").value("Products fetched successfully"))
+				.andExpect(jsonPath("$.Data[0].Id").value(1))
+				.andExpect(jsonPath("$.Data[0].Name").value("Mechanical Keyboard"))
+				.andExpect(jsonPath("$.Data[0].Price").value(110.00));
+	}
+	
+	@WithAnonymousUser
+	@Test
+	@DisplayName("GET /api/products - Should return 401 when not authenticated")
+	void shouldReturn401WhenUserProvideWrongPassword() throws Exception {
+
+		ResultActions perform = mockMvc.perform(get("/api/products").accept(MediaType.APPLICATION_JSON));
+
+		perform.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.Message").value("Authentication required"));
+		
+		// Verify no interactions occurred with service class
+		verifyNoInteractions(productService);
+	}
+	
+	@WithAnonymousUser
+	@Test
+	@DisplayName("GET /api/products - Should return 401 when user provided wrong password")
+	void shouldReturn401WhenNotAuthenticated() throws Exception {
+
+		ResultActions perform = mockMvc.perform(get("/api/products").accept(MediaType.APPLICATION_JSON)
+				.with(httpBasic("user", "wrongpassword")));
+
+		perform.andExpect(status().isUnauthorized())
+			.andExpect(jsonPath("$.Message").value("Authentication required"));
+		
+		// Verify no interactions occurred with service class
+		verifyNoInteractions(productService);
+	}
+
+	@Test	
 	@DisplayName("POST /api/products - Should return 201 when payload is valid")
 	void shouldCreateProductSuccessfully() throws Exception {
 		ProductRequest validRequest = new ProductRequest("Gaming Headset", new BigDecimal("89.99"));
@@ -91,6 +148,22 @@ public class ProductControllerUnitTest {
 		result.andExpect(status().isCreated()).andExpect(jsonPath("$.Success").value(true))
 				.andExpect(jsonPath("$.Data.Id").value(10)).andExpect(jsonPath("$.Data.Name").value("Gaming Headset"))
 				.andExpect(jsonPath("$.Data.Price").value(89.99));
+	}
+	
+	@WithMockUser(roles ="USER")
+	@Test
+	@DisplayName("POST /api/products - Should return 403 for a USER without the ADMIN role")
+	void shouldReturn403WithUserRole() throws Exception {
+		ProductRequest validRequest = new ProductRequest("Gaming Headset", new BigDecimal("89.99"));
+
+		ResultActions perform = mockMvc.perform(post("/api/products")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(validRequest)));
+				
+
+		perform.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.Message").value("Access denied"));
+		verifyNoInteractions(productService);
 	}
 
 	@Test
