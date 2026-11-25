@@ -36,6 +36,10 @@ public class XmlConfig {
 
 			builder.addMixIn(PagedModel.class, PagedModelMixin.class);
 
+			// Optional - Depends on API contract - if enabled, xsi:nil="true" - will
+			// be added to empty element (Jackson 3 behavior)
+//			builder.disable(XmlWriteFeature.WRITE_NULLS_AS_XSI_NIL);
+
 		};
 	}
 
