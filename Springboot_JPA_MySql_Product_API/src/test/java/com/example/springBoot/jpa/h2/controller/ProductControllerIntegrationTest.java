@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
@@ -35,12 +36,13 @@ public class ProductControllerIntegrationTest {
 
     @Test
     @DisplayName("End-to-End: Create product and retrieve via GET /api/products/search")
-    void shouldPersistAndRetrieveProduct() throws Exception {
+    void shouldPersistAndRetrieveProduct(@Value("${app.security.admin.username}") String adminUsername,
+			@Value("${app.security.admin.password}") String adminPassword) throws Exception {
         ProductRequest request = new ProductRequest("Wireless Presenter", new BigDecimal(45.50));
 
         // 1. Post to create the product
         mockMvc.perform(post("/api/products")
-        		.with(httpBasic("admin", "adminuser"))
+        		.with(httpBasic(adminUsername, adminPassword))
                 .contentType(MediaType.APPLICATION_JSON)                
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -48,7 +50,7 @@ public class ProductControllerIntegrationTest {
 
         // 2. Query the search endpoint to confirm persistence
         mockMvc.perform(get("/api/products/search")
-        		.with(httpBasic("admin", "adminuser"))
+        		.with(httpBasic(adminUsername, adminPassword))
                 .param("productName", "Wireless Presenter")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
