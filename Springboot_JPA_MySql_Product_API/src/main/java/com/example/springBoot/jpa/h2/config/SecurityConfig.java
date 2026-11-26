@@ -1,5 +1,6 @@
 package com.example.springBoot.jpa.h2.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,8 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,
-			RestAuthenticationEntryPoint entryPoint, RestAccessDeniedHandler deniedHandler) {
+	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, RestAuthenticationEntryPoint entryPoint,
+			RestAccessDeniedHandler deniedHandler) {
 
 		// 1. Disable CSRF because this is a stateless REST API (not browser form
 		// sessions)
@@ -34,9 +35,9 @@ public class SecurityConfig {
 
 				// 3. Define endpoint authorization rules
 				.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-						
+
 						// Allow anyone (even unauthenticated users) to read/search products
-		                //.requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+						// .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
 						// Allow ADMIN and USER to read/search products
 						.requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("ADMIN", "USER")
@@ -44,15 +45,15 @@ public class SecurityConfig {
 						// Restrict creating, updating, and deleting products to ADMIN role only
 						.anyRequest().hasRole("ADMIN"))
 
-						/**
-						 * hasRole("ADMIN") is compared against the authority ROLE_ADMIN; Spring adds
-						 * the ROLE_ prefix itself.
-						 */
+				/**
+				 * hasRole("ADMIN") is compared against the authority ROLE_ADMIN; Spring adds
+				 * the ROLE_ prefix itself.
+				 */
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(entryPoint)) // Custom handlers
 				.exceptionHandling(ex -> ex.accessDeniedHandler(deniedHandler))
 
 				// 4. Enable HTTP Basic Authentication
-			.httpBasic(basic -> basic.authenticationEntryPoint(entryPoint));
+				.httpBasic(basic -> basic.authenticationEntryPoint(entryPoint));
 
 		return httpSecurity.build();
 	}
@@ -68,10 +69,17 @@ public class SecurityConfig {
 	 * default.
 	 */
 	@Bean
-	public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-		UserDetails userDetails = User.withUsername("user").password(encoder.encode("testuser")).roles("USER").build();
+	public UserDetailsService userDetailsService(@Value("${app.security.admin.username}") String adminUsername,
+			@Value("${app.security.admin.password}") String adminPassword,
+			@Value("${app.security.user.username}") String userUsername,
+			@Value("${app.security.user.password}") String userPassword, PasswordEncoder encoder) {
+		
+		UserDetails userDetails = User.withUsername(userUsername)
+				.password(encoder.encode(userPassword)).roles("USER")
+				.build();
 
-		UserDetails adminDetails = User.withUsername("admin").password(encoder.encode("adminuser")).roles("ADMIN")
+		UserDetails adminDetails = User.withUsername(adminUsername)
+				.password(encoder.encode(adminPassword)).roles("ADMIN")
 				.build();
 
 		return new InMemoryUserDetailsManager(userDetails, adminDetails);
@@ -80,20 +88,41 @@ public class SecurityConfig {
 //	The user is rejected before your service gets a chance to say "not found".
 }
 
-/** A @Bean method creates an object and registers it in Spring's container, and that 
- * object can be handed to any class that asks for its type. What happens, in order:
+/**
+ * A @Bean method creates an object and registers it in Spring's container, and
+ * that object can be handed to any class that asks for its type. What happens,
+ * in order:
+ * 
+ * 1. At startup, Spring finds the methods annotated with @Bean in
+ * your @Configuration classes. Singleton beans are created eagerly, in
+ * dependency order. 2. It calls each method once, injecting the method's
+ * parameters (for example PasswordEncoder into userDetailsService). 3. It
+ * stores the returned object. Whoever needs that type gets that same object.
+ */
 
-1. At startup, Spring finds the methods annotated with @Bean in your @Configuration classes.
- Singleton beans are created eagerly, in dependency order.
-2. It calls each method once, injecting the method's parameters (for example PasswordEncoder
- into userDetailsService).
-3. It stores the returned object. Whoever needs that type gets that same object.*/
+/**
+ * securityFilterChain(...) runs once at startup and builds the chain. The rules
+ * inside it (like hasRole) are then checked on every request. This is why a
+ * mistake in the config shows up at startup (like the missing-bean errors) but
+ * a wrong rule only shows up when you send a request.
+ */
 
-/**securityFilterChain(...) runs once at startup and builds the chain. The rules
- *  inside it (like hasRole) are then checked on every request. This is why a mistake
- *  in the config shows up at startup (like the missing-bean errors) but a wrong rule
- *  only shows up when you send a request.*/
+/**
+ * @Bean vs @Component. Put @Component on a class you write (your entry point).
+ *       Use @Bean on a method when you need to construct or configure the
+ *       object yourself, for example new BCryptPasswordEncoder(), a class you
+ *       don't own.
+ */
 
-/**@Bean vs @Component. Put @Component on a class you write (your entry point). 
- * Use @Bean on a method when you need to construct or configure the object yourself, for 
- * example new BCryptPasswordEncoder(), a class you don't own. */
+/**
+ * @Value("${app.security.admin.password}") goes on a parameter of the
+ * userDetailsService bean method (or on a field), and Spring fills it in. 
+ * Key points: The ${...} is a placeholder: Spring looks the key up in the
+ * Environment when it creates the bean.
+ * 
+ * Add the program argument "--app.security.admin.password=other" in the Eclipse run configuration to 
+ * override the properties file "app.security.admin.password". Now the password for admin is "other".
+ * Explanation - Boot checks several places in order of priority, and environment variables and 
+ * command-line arguments override the file. So APP_SECURITY_ADMIN_PASSWORD as an environment variable 
+ * overrides app.security.admin.password of properties file.
+ */
