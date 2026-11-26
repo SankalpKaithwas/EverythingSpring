@@ -2,14 +2,22 @@ package com.example.springBoot.jpa.h2.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 @JsonRootName(value = "ApiResponse")
 public class ApiResponse<T> {
-
+	
+	@JsonProperty("Success")
 	private boolean success;
+	
+	@JsonProperty("Message")
 	private String message;
+	
+	@JsonProperty("Data")
 	private T data;
+	
+	@JsonProperty("Timestamp")
 	private LocalDateTime timestamp;
 
 	public ApiResponse() {

@@ -41,6 +41,10 @@ public class SecurityConfig {
 
 						// Allow ADMIN and USER to read/search products
 						.requestMatchers(HttpMethod.GET, "/api/products/**").hasAnyRole("ADMIN", "USER")
+						
+						// Anyone can see the API description, nobody can call the API without credentials. Common for development. 
+						.requestMatchers(HttpMethod.GET, "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+						.permitAll()
 
 						// Restrict creating, updating, and deleting products to ADMIN role only
 						.anyRequest().hasRole("ADMIN"))

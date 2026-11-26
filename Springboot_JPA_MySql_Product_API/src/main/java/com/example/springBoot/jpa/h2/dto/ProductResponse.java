@@ -1,10 +1,13 @@
 package com.example.springBoot.jpa.h2.dto;
 
 import java.math.BigDecimal;
-
 import com.example.springBoot.jpa.h2.model.Product;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record ProductResponse(Long id, String name, BigDecimal price) {
+public record ProductResponse(
+		@JsonProperty("Id") Long id,
+		@JsonProperty("Name") String name,
+		@JsonProperty("Price") BigDecimal price) {
 	
 	public static ProductResponse fromEntity(Product product) {
 		return new ProductResponse(product.getId(), product.getName(), product.getPrice());
