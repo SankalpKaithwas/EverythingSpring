@@ -3,9 +3,8 @@ package com.example.springBoot.jpa.h2.model;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName(value = "ApiResponse")
+
 public class ApiResponse<T> {
 	
 	@JsonProperty("Success")
