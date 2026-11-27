@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.springBoot.jpa.h2.dto.ProductPatchRequest;
@@ -62,6 +63,7 @@ public class ProductController {
 		
 	// POST (Create): http://localhost:8080/api/products
 	@PostMapping(consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<ApiResponse<ProductResponse>> 
 				createProduct(@Valid @RequestBody ProductRequest product) {
 		ProductResponse saved = productService.addProduct(product);
