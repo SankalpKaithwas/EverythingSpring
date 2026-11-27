@@ -3,6 +3,7 @@ package com.example.springBoot.jpa.h2.controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -142,11 +143,18 @@ public class ProductController {
 	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
 	@GetMapping("/paged")
 	public ResponseEntity<ApiResponse<PagedModel<ProductResponse>>> 
-			getProductsPaged(@PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
+			getProductsPaged(@PageableDefault(page = 0, size = 5, sort = "id") @ParameterObject
+					Pageable pageable) {
 	
 		Page<ProductResponse> page = productService.getProductsPaginated(pageable);
 	    return ResponseEntity.ok(ApiResponse.success(new PagedModel<ProductResponse>(page)))   ;
-	}
+	}	
+	/**
+	 * @ParameterObject tells springdoc: "this object's fields are query parameters,
+	 *                  list them one by one" instead of one object-valued
+	 *                  parameter. It affects only the documentation. The controller
+	 *                  behavior is unchanged.
+	 */
 	
 	@PatchMapping(path = "/{id}", 
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
