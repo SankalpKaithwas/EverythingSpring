@@ -7,7 +7,6 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.springBoot.jpa.h2.dto.PagedResponse;
 import com.example.springBoot.jpa.h2.dto.ProductPatchRequest;
 import com.example.springBoot.jpa.h2.dto.ProductRequest;
 import com.example.springBoot.jpa.h2.dto.ProductResponse;
@@ -144,12 +144,12 @@ public class ProductController {
     
 	// URL: http://localhost:8080/api/products/paged?page=0&size=3&sort=price,desc
 	@GetMapping("/paged")
-	public ResponseEntity<ApiResponse<PagedModel<ProductResponse>>> 
+	public ResponseEntity<ApiResponse<PagedResponse<ProductResponse>>> 
 			getProductsPaged(@PageableDefault(page = 0, size = 5, sort = "id") @ParameterObject
 					Pageable pageable) {
 	
 		Page<ProductResponse> page = productService.getProductsPaginated(pageable);
-	    return ResponseEntity.ok(ApiResponse.success(new PagedModel<ProductResponse>(page)))   ;
+	    return ResponseEntity.ok(ApiResponse.success(PagedResponse.from(page)));
 	}	
 	/**
 	 * @ParameterObject tells springdoc: "this object's fields are query parameters,

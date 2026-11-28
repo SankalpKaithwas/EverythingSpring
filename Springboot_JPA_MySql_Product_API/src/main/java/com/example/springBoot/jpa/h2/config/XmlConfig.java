@@ -3,7 +3,6 @@ package com.example.springBoot.jpa.h2.config;
 import org.springframework.boot.jackson.autoconfigure.XmlMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.web.PagedModel;
 
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.PropertyNamingStrategies;
@@ -33,8 +32,6 @@ public class XmlConfig {
 
 			// Output PascalCase/UpperCamelCase ("StatusCode", "Price", "Name")
 			builder.propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
-
-			builder.addMixIn(PagedModel.class, PagedModelMixin.class);
 
 			// Optional - Depends on API contract - if enabled, xsi:nil="true" - will
 			// be added to empty element (Jackson 3 behavior)
